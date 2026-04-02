@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Run echo statement') {
             steps {
-                sh 'jenkins -version'
+                sh 'java -version'
             }
         }
     }
