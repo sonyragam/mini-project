@@ -22,8 +22,7 @@ pipeline {
                     fuser -k 9090/tcp || true
 
                     echo "Starting new application..."
-                    nohup java -jar target/simple_java-1.0.jar > app.log 2>&1 &
-                    disown
+                    setsid java -jar target/simple_java-1.0.jar > app.log 2>&1 &
 
                     echo "Application deployed successfully"
                     '''
