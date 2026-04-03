@@ -5,7 +5,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir('/home/sony/Day2/Java_Backend') {
+                #dir('/home/sony/Day2/Java_Backend') {
                     sh 'mvn clean package'
                 }
             }
@@ -13,8 +13,9 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                dir('/home/sony/Day2/Java_Backend') {
+                #dir('/home/sony/Day2/Java_Backend') {
                     sh '''
+                    cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend/target
                     fuser -k 9090/tcp || true
                     nohup java -jar target/*.jar > app.log 2>&1 &
                     '''
