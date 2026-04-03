@@ -1,4 +1,4 @@
-pipeline {
+ pipeline {
     agent any
 
     stages {
@@ -8,6 +8,7 @@ pipeline {
                 echo "Building Spring Boot JAR..."
 
                 sh '''
+                cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend 
                 mvn clean package -DskipTests
                 '''
             }
@@ -18,7 +19,7 @@ pipeline {
                 echo "Checking target folder..."
 
                 sh '''
-                ls -lh target/
+                ls -lh /home/sony/Day2/Java_Backend/target/
                 '''
             }
         }
