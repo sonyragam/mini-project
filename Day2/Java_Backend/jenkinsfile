@@ -16,10 +16,10 @@ pipeline {
                 dir('Day2/Java_Backend') {
                     sh '''
                     fuser -k 9090/tcp || true
-                    nohup java -jar target/*.jar > app.log 2>&1 &
+                    nohup java -jar target/simple_java-1.0.jar > app.log 2>&1 &
                     '''
                 }
             }
         }
     }
-}
+}  
