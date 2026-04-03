@@ -1,33 +1,83 @@
-stage('Deploy') {
-    steps {
-        sh '''
-        set -e
+pipeline {
+    agent any
 
-        APP_DIR=/tmp/springboot-app
-        mkdir -p $APP_DIR
+    environment {
+        APP_DIR = "/tmp/springapp"
+        JAR_NAME = "app.jar"
+    }
 
-        echo "Copying jar out of Jenkins workspace..."
-        cp Day2/Java_Backend/target/*.jar $APP_DIR/app.jar
+    stages {
 
-        cd $APP_DIR
+        stage('Checkout Code') {
+            steps {
+                echo "Cloning repository..."
+                git branch: 'main', url: 'YOUR_GIT_REPO_URL'
+            }
+        }
 
-        echo "Killing old process if exists..."
-        pkill -f app.jar || true
+        stage('Build Jar') {
+            steps {
+                echo "Building Spring Boot application..."
 
-        echo "Starting app in FULLY detached mode..."
+                sh '''
+                ./mvnw clean package -DskipTests || mvn clean package -DskipTests
+                '''
+            }
+        }
 
-        nohup setsid java -jar app.jar \
-        > app.log 2>&1 < /dev/null &
+        stage('Prepare Deployment Directory') {
+            steps {
+                sh '''
+                echo "Creating deployment directory..."
+                mkdir -p $APP_DIR
+                '''
+            }
+        }
 
-        disown
+        stage('Deploy Jar') {
+            steps {
+                sh '''
+                echo "Copying jar to /tmp..."
 
-        echo $! > app.pid
+                cp target/*.jar $APP_DIR/$JAR_NAME
 
-        sleep 10
+                echo "Stopping old app if running..."
+                pkill -f $JAR_NAME || true
+                '''
+            }
+        }
 
-        echo "Checking process AFTER Jenkins scope ends..."
-        ps -ef | grep app.jar || true
-        ss -tulnp | grep 9090 || true
-        '''
+        stage('Run Application (Detached)') {
+            steps {
+                sh '''
+                echo "Starting Spring Boot application in detached mode..."
+
+                cd $APP_DIR
+
+                nohup setsid bash -c "
+                java -jar $JAR_NAME > app.log 2>&1 < /dev/null
+                " &
+
+                echo $! > app.pid
+
+                sleep 5
+
+                echo "Checking if application started..."
+                ps -ef | grep $JAR_NAME || true
+                ss -tulnp | grep 9090 || true
+                '''
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo "Deployment successful!"
+        }
+
+        failure {
+            echo "Deployment failed!"
+        }
     }
 }
