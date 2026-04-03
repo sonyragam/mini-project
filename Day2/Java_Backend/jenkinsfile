@@ -16,7 +16,7 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                dir('Day2/Java_Backend') {
+                dir('Day2/Java_Backend/target') {
                     sh '''
                     set -e
 
@@ -26,19 +26,10 @@ pipeline {
                     echo "Stopping existing application on port 9090..."
                     fuser -k 9090/tcp || true
 
-                    echo "Validating JAR file..."
-
-                    JAR="target/simple_java-1.0.jar"
-
-                    if [ ! -f "$JAR" ]; then
-                        echo "ERROR: JAR not found at $JAR"
-                        exit 1
-                    fi
-
                     echo "Starting application..."
 
                     # Start Spring Boot in background (correct way)
-                    nohup java -jar $JAR > app.log 2>&1 &
+                    nohup java -jar simple_java-1.0.jar > app.log 2>&1 &
 
                     echo $! > app.pid
 
