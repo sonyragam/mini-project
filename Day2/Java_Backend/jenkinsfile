@@ -18,13 +18,37 @@ pipeline {
             steps {
                 dir('Day2/Java_Backend') {
                     sh '''
+                    echo "Checking Java..."
+                    which java || true
+                    java -version || true
+
                     echo "Stopping old application..."
                     fuser -k 9090/tcp || true
 
                     echo "Starting new application..."
-                    setsid java -jar target/simple_java-1.0.jar > app.log 2>&1 &
+                    
+                    # Use full Java path (VERY IMPORTANT)
+                    JAVA_PATH=$(which java)
 
-                    echo "Application deployed successfully"
+                    if [ -z "$JAVA_PATH" ]; then
+                        echo "Java not found in PATH. Using fallback..."
+                        JAVA_PATH=/usr/bin/java
+                    fi
+
+                    echo "Using Java at: $JAVA_PATH"
+
+                    # Start app in fully detached mode
+                    setsid $JAVA_PATH -jar target/simple_java-1.0.jar > app.log 2>&1 &
+
+                    sleep 5
+
+                    echo "Checking if app started..."
+                    ps -ef | grep simple_java || true
+
+                    echo "Logs:"
+                    cat app.log || true
+
+                    echo "Deployment step completed"
                     '''
                 }
             }
