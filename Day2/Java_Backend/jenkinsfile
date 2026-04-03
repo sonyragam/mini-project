@@ -19,7 +19,7 @@
                 echo "Checking target folder..."
 
                 sh '''
-                ls -lh /home/sony/Day2/Java_Backend/target/
+                ls -lh /home/sony/.jenkins/workspace/test/Day2/Java_Backend/target/
                 '''
             }
         }
