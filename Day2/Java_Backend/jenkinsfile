@@ -16,35 +16,37 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                dir('Day2/Java_Backend/target') {
+                dir('Day2/Java_Backend') {
                     sh '''
                     set -e
 
-                    echo "Checking Java..."
-                    java -version || true
+                    echo "Copying jar to stable location..."
+                    mkdir -p /tmp/springapp
+                    cp target/*.jar /tmp/springapp/app.jar
 
-                    echo "Stopping existing application on port 9090..."
-                    fuser -k 9090/tcp || true
+                    cd /tmp/springapp
 
-                    echo "Starting application..."
+                    echo "Stopping old app (if any)..."
+                    pkill -f app.jar || true
 
-                    # Start Spring Boot in background (correct way)
-                    nohup java -jar simple_java-1.0.jar > app.log 2>&1 &
+                    echo "Starting application in detached mode..."
+
+                    setsid nohup java -jar app.jar > app.log 2>&1 < /dev/null &
 
                     echo $! > app.pid
 
-                    sleep 5
+                    sleep 10
 
-                    echo "Checking running Java processes..."
-                    ps -ef | grep java | grep -v grep || true
+                    echo "Checking process..."
+                    ps -ef | grep app.jar | grep -v grep || true
 
                     echo "Checking port 9090..."
-                    lsof -i :9090 || true
+                    ss -tulnp | grep 9090 || true
 
-                    echo "Application logs (last 30 lines):"
-                    tail -n 30 app.log || true
+                    echo "Last logs:"
+                    tail -n 50 app.log || true
 
-                    echo "Deployment completed successfully"
+                    echo "Deployment DONE"
                     '''
                 }
             }
