@@ -1,55 +1,33 @@
-pipeline {
-    agent any
+stage('Deploy') {
+    steps {
+        sh '''
+        set -e
 
-    stages {
+        APP_DIR=/tmp/springboot-app
+        mkdir -p $APP_DIR
 
-        stage('Build') {
-            steps {
-                dir('Day2/Java_Backend') {
-                    sh '''
-                    echo "Building application..."
-                    mvn clean package
-                    '''
-                }
-            }
-        }
+        echo "Copying jar out of Jenkins workspace..."
+        cp Day2/Java_Backend/target/*.jar $APP_DIR/app.jar
 
-        stage('Deploy') {
-            steps {
-                dir('Day2/Java_Backend') {
-                    sh '''
-                    set -e
+        cd $APP_DIR
 
-                    echo "Copying jar to stable location..."
-                    mkdir -p /tmp/springapp
-                    cp target/*.jar /tmp/springapp/app.jar
+        echo "Killing old process if exists..."
+        pkill -f app.jar || true
 
-                    cd /tmp/springapp
+        echo "Starting app in FULLY detached mode..."
 
-                    echo "Stopping old app (if any)..."
-                    pkill -f app.jar || true
+        nohup setsid java -jar app.jar \
+        > app.log 2>&1 < /dev/null &
 
-                    echo "Starting application in detached mode..."
+        disown
 
-                    setsid nohup java -jar app.jar > app.log 2>&1 < /dev/null &
+        echo $! > app.pid
 
-                    echo $! > app.pid
+        sleep 10
 
-                    sleep 10
-
-                    echo "Checking process..."
-                    ps -ef | grep app.jar | grep -v grep || true
-
-                    echo "Checking port 9090..."
-                    ss -tulnp | grep 9090 || true
-
-                    echo "Last logs:"
-                    tail -n 50 app.log || true
-
-                    echo "Deployment DONE"
-                    '''
-                }
-            }
-        }
+        echo "Checking process AFTER Jenkins scope ends..."
+        ps -ef | grep app.jar || true
+        ss -tulnp | grep 9090 || true
+        '''
     }
 }
