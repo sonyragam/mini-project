@@ -1,70 +1,24 @@
 pipeline {
     agent any
 
-    environment {
-        APP_DIR = "/tmp/springapp"
-        JAR_NAME = "app.jar"
-    }
-
     stages {
-
-        stage('Checkout Code') {
-            steps {
-                echo "Cloning repository..."
-                git branch: 'main', url: 'https://github.com/sonyragam/mini-project.git' 
-            }
-        }
 
         stage('Build Jar') {
             steps {
-                echo "Building Spring Boot application..."
+                echo "Building Spring Boot JAR..."
 
                 sh '''
-                mvn clean package -DskipTests 
+                mvn clean package -DskipTests
                 '''
             }
         }
 
-        stage('Prepare Deployment Directory') {
+        stage('Verify') {
             steps {
+                echo "Checking target folder..."
+
                 sh '''
-                echo "Creating deployment directory..."
-                mkdir -p $APP_DIR
-                '''
-            }
-        }
-
-        stage('Deploy Jar') {
-            steps {
-                sh '''
-                echo "Copying jar to /tmp..."
-
-                cp target/*.jar $APP_DIR/$JAR_NAME
-
-                echo "Stopping old app if running..."
-                pkill -f $JAR_NAME || true
-                '''
-            }
-        }
-
-        stage('Run Application (Detached)') {
-            steps {
-                sh '''
-                echo "Starting Spring Boot application in detached mode..."
-
-                cd $APP_DIR
-
-                nohup setsid bash -c "
-                java -jar $JAR_NAME > app.log 2>&1 < /dev/null
-                " &
-
-                echo $! > app.pid
-
-                sleep 5
-
-                echo "Checking if application started..."
-                ps -ef | grep $JAR_NAME || true
-                ss -tulnp | grep 9090 || true
+                ls -lh target/
                 '''
             }
         }
@@ -73,11 +27,11 @@ pipeline {
 
     post {
         success {
-            echo "Deployment successful!"
+            echo "Build successful - JAR created in target/"
         }
 
         failure {
-            echo "Deployment failed!"
+            echo "Build failed"
         }
     }
 }
