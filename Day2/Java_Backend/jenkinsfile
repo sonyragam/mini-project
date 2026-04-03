@@ -44,11 +44,41 @@ pipeline {
             }
         }
 
+        stage('Docker Build') {
+            steps {
+                echo "Building Docker Image..."
+
+                sh '''
+                cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
+                docker build -t java-backend-app .
+                '''
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                echo "Stopping old container if exists..."
+
+                sh '''
+                docker stop java-backend-container || true
+                docker rm java-backend-container || true
+                '''
+
+                echo "Running new container on port 9090..."
+
+                sh '''
+                docker run -d -p 9090:9090 \
+                --name java-backend-container \
+                java-backend-app
+                '''
+            }
+        }
+
     }
 
     post {
         success {
-            echo "Build + SonarQube analysis successful"
+            echo "Build + SonarQube + Docker pipeline successful"
         }
 
         failure {
