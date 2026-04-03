@@ -21,31 +21,26 @@ pipeline {
                     set -e
 
                     echo "Checking Java..."
-                    which java || true
                     java -version || true
 
-                    echo "Stopping old application on port 9090..."
+                    echo "Stopping existing application on port 9090..."
                     fuser -k 9090/tcp || true
 
-                    echo "Starting application..."
+                    echo "Validating JAR file..."
 
-                    JAVA_PATH=$(which java)
+                    JAR="target/simple_java-1.0.jar"
 
-                    if [ -z "$JAVA_PATH" ]; then
-                        echo "Java not found in PATH. Using fallback /usr/bin/java"
-                        JAVA_PATH=/usr/bin/java
-                    fi
-
-                    echo "Using Java: $JAVA_PATH"
-
-                    JAR_FILE="target/simple_java-1.0.jar"
-
-                    if [ ! -f "$JAR_FILE" ]; then
-                        echo "ERROR: JAR not found at $JAR_FILE"
+                    if [ ! -f "$JAR" ]; then
+                        echo "ERROR: JAR not found at $JAR"
                         exit 1
                     fi
 
-                    setsid $JAVA_PATH -jar $JAR_FILE > app.log 2>&1 &
+                    echo "Starting application..."
+
+                    # Start Spring Boot in background (correct way)
+                    nohup java -jar $JAR > app.log 2>&1 &
+
+                    echo $! > app.pid
 
                     sleep 5
 
@@ -55,8 +50,8 @@ pipeline {
                     echo "Checking port 9090..."
                     lsof -i :9090 || true
 
-                    echo "Application Logs:"
-                    tail -n 50 app.log || true
+                    echo "Application logs (last 30 lines):"
+                    tail -n 30 app.log || true
 
                     echo "Deployment completed successfully"
                     '''
