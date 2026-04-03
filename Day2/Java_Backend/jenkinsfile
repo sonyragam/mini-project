@@ -6,7 +6,10 @@ pipeline {
         stage('Build') {
             steps {
                 dir('Day2/Java_Backend') {
-                    sh 'mvn clean package'
+                    sh '''
+                    echo "Building application..."
+                    mvn clean package
+                    '''
                 }
             }
         }
@@ -15,11 +18,17 @@ pipeline {
             steps {
                 dir('Day2/Java_Backend') {
                     sh '''
+                    echo "Stopping old application..."
                     fuser -k 9090/tcp || true
+
+                    echo "Starting new application..."
                     nohup java -jar target/simple_java-1.0.jar > app.log 2>&1 &
+                    disown
+
+                    echo "Application deployed successfully"
                     '''
                 }
             }
         }
     }
-}  
+}
