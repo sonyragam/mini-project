@@ -3,22 +3,22 @@ pipeline {
 
     stages {
 
-        stage('Build & Deploy') {
+        stage('Build') {
             steps {
-                sh '''
-                cd /home/sony/.jenkins/workspace/test
+                dir('Day2/Java_Backend') {
+                    sh 'mvn clean package'
+                }
+            }
+        }
 
-                echo "Stopping old app..."
-                fuser -k 9090/tcp || true
-
-                echo "Building new JAR..."
-                mvn clean package
-
-                echo "Starting new app..."
-                nohup java -jar target/*.jar > app.log 2>&1 &
-
-                echo "App started"
-                '''
+        stage('Deploy') {
+            steps {
+                dir('Day2/Java_Backend') {
+                    sh '''
+                    fuser -k 9090/tcp || true
+                    nohup java -jar target/*.jar > app.log 2>&1 &
+                    '''
+                }
             }
         }
     }
