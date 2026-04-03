@@ -18,37 +18,47 @@ pipeline {
             steps {
                 dir('Day2/Java_Backend') {
                     sh '''
+                    set -e
+
                     echo "Checking Java..."
                     which java || true
                     java -version || true
 
-                    echo "Stopping old application..."
+                    echo "Stopping old application on port 9090..."
                     fuser -k 9090/tcp || true
 
-                    echo "Starting new application..."
-                    
-                    # Use full Java path (VERY IMPORTANT)
+                    echo "Starting application..."
+
                     JAVA_PATH=$(which java)
 
                     if [ -z "$JAVA_PATH" ]; then
-                        echo "Java not found in PATH. Using fallback..."
+                        echo "Java not found in PATH. Using fallback /usr/bin/java"
                         JAVA_PATH=/usr/bin/java
                     fi
 
-                    echo "Using Java at: $JAVA_PATH"
+                    echo "Using Java: $JAVA_PATH"
 
-                    # Start app in fully detached mode
-                    setsid $JAVA_PATH -jar target/simple_java-1.0.jar > app.log 2>&1 &
+                    JAR_FILE="target/simple_java-1.0.jar"
+
+                    if [ ! -f "$JAR_FILE" ]; then
+                        echo "ERROR: JAR not found at $JAR_FILE"
+                        exit 1
+                    fi
+
+                    setsid $JAVA_PATH -jar $JAR_FILE > app.log 2>&1 &
 
                     sleep 5
 
-                    echo "Checking if app started..."
-                    ps -ef | grep simple_java || true
+                    echo "Checking running Java processes..."
+                    ps -ef | grep java | grep -v grep || true
 
-                    echo "Logs:"
-                    cat app.log || true
+                    echo "Checking port 9090..."
+                    lsof -i :9090 || true
 
-                    echo "Deployment step completed"
+                    echo "Application Logs:"
+                    tail -n 50 app.log || true
+
+                    echo "Deployment completed successfully"
                     '''
                 }
             }
