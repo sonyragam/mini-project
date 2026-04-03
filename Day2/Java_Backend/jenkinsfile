@@ -1,5 +1,13 @@
- pipeline {
+pipeline {
     agent any
+
+    tools {
+        maven 'maven3'   // optional if configured in Jenkins tools
+    }
+
+    environment {
+        SONAR_PROJECT_KEY = 'test-backend'
+    }
 
     stages {
 
@@ -8,7 +16,7 @@
                 echo "Building Spring Boot JAR..."
 
                 sh '''
-                cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend 
+                cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
                 mvn clean package -DskipTests
                 '''
             }
@@ -24,15 +32,31 @@
             }
         }
 
+        stage('SonarQube Analysis') {
+            steps {
+                echo "Running SonarQube Analysis..."
+
+                withSonarQubeEnv('sonar_qube') {
+
+                    sh '''
+                    cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
+                    mvn clean verify sonar:sonar \
+                    -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+                    -Dsonar.host.url=http://localhost:9000
+                    '''
+                }
+            }
+        }
+
     }
 
     post {
         success {
-            echo "Build successful - JAR created in target/"
+            echo "Build + SonarQube analysis successful"
         }
 
         failure {
-            echo "Build failed"
+            echo "Pipeline failed"
         }
     }
 }
