@@ -8,12 +8,6 @@ pipeline {
 
     stages {
 
-        stage('Clone') {
-            steps {
-                git 'https://github.com/your-repo/java-backend.git'
-            }
-        }
-
         stage('Build Jar') {
             steps {
                 echo "Building Spring Boot JAR..."
