@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: java-backend
-        image: sonyragam8624/java-backend-app:73-d159b9e   # will be updated by Jenkins
+        image: sonyragam/java-backend-app:77-217df08
         ports:
         - containerPort: 9090
         imagePullPolicy: Always
