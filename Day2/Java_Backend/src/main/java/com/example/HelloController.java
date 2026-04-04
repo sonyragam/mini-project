@@ -8,7 +8,7 @@ public class HelloController {
 
     @GetMapping("/")
     public String home() {
-        return "Hello from Java Backend 🚀";
+        return "Hello from sony! iam Java Backend and deployement is automated 🚀";
     }
 
     @GetMapping("/status")
