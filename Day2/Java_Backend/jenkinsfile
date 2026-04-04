@@ -3,18 +3,22 @@ pipeline {
 
     environment {
         SONAR_PROJECT_KEY = 'test-backend'
+        IMAGE = 'sonyragam8624@gmail.com/java-backend-app'
     }
 
     stages {
+
+        stage('Clone') {
+            steps {
+                git 'https://github.com/your-repo/java-backend.git'
+            }
+        }
 
         stage('Build Jar') {
             steps {
                 echo "Building Spring Boot JAR..."
 
-                sh '''
-                cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
-                mvn clean package -DskipTests
-                '''
+                sh 'mvn clean package -DskipTests'
             }
         }
 
@@ -22,9 +26,7 @@ pipeline {
             steps {
                 echo "Checking target folder..."
 
-                sh '''
-                ls -lh /home/sony/.jenkins/workspace/test/Day2/Java_Backend/target/
-                '''
+                sh 'ls -lh target/'
             }
         }
 
@@ -33,9 +35,7 @@ pipeline {
                 echo "Running SonarQube Analysis..."
 
                 withSonarQubeEnv('sonar_qube') {
-
                     sh '''
-                    cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
                     mvn clean verify sonar:sonar \
                     -Dsonar.projectKey=$SONAR_PROJECT_KEY \
                     -Dsonar.host.url=http://localhost:9000
@@ -44,41 +44,41 @@ pipeline {
             }
         }
 
+        stage('Generate Tag') {
+            steps {
+                script {
+                    COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    TAG = "${BUILD_NUMBER}-${COMMIT}"
+                    env.TAG = TAG
+                }
+            }
+        }
+
         stage('Docker Build') {
             steps {
                 echo "Building Docker Image..."
 
-                sh '''
-                cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
-                docker build -t java-backend-app .
-                '''
+                sh 'docker build -t $IMAGE:$TAG .'
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Docker Push') {
             steps {
-                echo "Stopping old container if exists..."
+                echo "Pushing image to Docker Hub..."
 
-                sh '''
-                docker stop java-backend-container || true
-                docker rm java-backend-container || true
-                '''
-
-                echo "Running new container on port 9090..."
-
-                sh '''
-                docker run -d -p 9090:9090 \
-                --name java-backend-container \
-                java-backend-app
-                '''
+                withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh '''
+                    echo $PASS | docker login -u $USER --password-stdin
+                    docker push $IMAGE:$TAG
+                    '''
+                }
             }
         }
-
     }
 
     post {
         success {
-            echo "Build + SonarQube + Docker pipeline successful"
+            echo "Build + SonarQube + Docker push successful"
         }
 
         failure {
