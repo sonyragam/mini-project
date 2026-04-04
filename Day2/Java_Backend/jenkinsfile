@@ -36,7 +36,7 @@ pipeline {
                 withSonarQubeEnv('sonar_qube') {
                     sh '''
                     cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
-                    mvn clean verify sonar:sonar \
+                    mvn verify sonar:sonar \
                     -Dsonar.projectKey=$SONAR_PROJECT_KEY \
                     -Dsonar.host.url=http://localhost:9000
                     '''
