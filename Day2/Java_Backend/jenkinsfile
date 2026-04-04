@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SONAR_PROJECT_KEY = 'test-backend'
-        IMAGE = 'sonyragam8624@gmail.com/java-backend-app'
+        IMAGE = 'sonyragam8624@gmail.com/java-backend-app'   // ✅ FIXED
     }
 
     stages {
@@ -12,7 +12,10 @@ pipeline {
             steps {
                 echo "Building Spring Boot JAR..."
 
-                sh 'mvn clean package -DskipTests'
+                sh '''
+                cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
+                mvn clean package -DskipTests
+                '''
             }
         }
 
@@ -20,7 +23,9 @@ pipeline {
             steps {
                 echo "Checking target folder..."
 
-                sh 'ls -lh target/'
+                sh '''
+                ls -lh /home/sony/.jenkins/workspace/test/Day2/Java_Backend/target/
+                '''
             }
         }
 
@@ -30,6 +35,7 @@ pipeline {
 
                 withSonarQubeEnv('sonar_qube') {
                     sh '''
+                    cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
                     mvn clean verify sonar:sonar \
                     -Dsonar.projectKey=$SONAR_PROJECT_KEY \
                     -Dsonar.host.url=http://localhost:9000
@@ -52,7 +58,10 @@ pipeline {
             steps {
                 echo "Building Docker Image..."
 
-                sh 'docker build -t $IMAGE:$TAG .'
+                sh '''
+                cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
+                docker build -t $IMAGE:$TAG .
+                '''
             }
         }
 
@@ -61,6 +70,7 @@ pipeline {
                 echo "Pushing image to Docker Hub..."
 
                 withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+
                     sh '''
                     echo $PASS | docker login -u $USER --password-stdin
                     docker push $IMAGE:$TAG
@@ -72,7 +82,7 @@ pipeline {
 
     post {
         success {
-            echo "Build + SonarQube + Docker push successful"
+            echo "Build + SonarQube + Docker pipeline successful"
         }
 
         failure {
