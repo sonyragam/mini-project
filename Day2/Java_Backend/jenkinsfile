@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SONAR_PROJECT_KEY = 'test-backend'
-        IMAGE = 'sonyragam8624@gmail.com/java-backend-app'   // ✅ FIXED
+        IMAGE = 'sonyragam/java-backend-app'   // ✅ Use Docker Hub USERNAME (not email)
     }
 
     stages {
@@ -47,8 +47,8 @@ pipeline {
         stage('Generate Tag') {
             steps {
                 script {
-                    COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    TAG = "${BUILD_NUMBER}-${COMMIT}"
+                    def COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    def TAG = "${BUILD_NUMBER}-${COMMIT}"
                     env.TAG = TAG
                 }
             }
@@ -82,7 +82,7 @@ pipeline {
 
     post {
         success {
-            echo "Build + SonarQube + Docker pipeline successful"
+            echo "Build + SonarQube + Docker push successful"
         }
 
         failure {
