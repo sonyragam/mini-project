@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SONAR_PROJECT_KEY = 'test-backend'
-        IMAGE = 'sonyragam/java-backend-app'   // ✅ Use Docker Hub USERNAME (not email)
+        IMAGE = 'sonyragam/java-backend-app'
     }
 
     stages {
@@ -78,11 +78,37 @@ pipeline {
                 }
             }
         }
+
+        stage('Update K8s Deployment') {
+            steps {
+                echo "Updating deployment.yml with new image tag..."
+
+                withCredentials([usernamePassword(credentialsId: 'git-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+
+                    sh '''
+                    cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
+
+                    # Update image tag in K8s deployment
+                    sed -i "s|image:.*|image: sonyragam/java-backend-app:$TAG|" K8s/deployment.yml
+
+                    # Git config
+                    git config user.name "jenkins"
+                    git config user.email "jenkins@example.com"
+
+                    # Commit and push
+                    git add K8s/deployment.yml
+                    git commit -m "Update image to $TAG" || echo "No changes to commit"
+
+                    git push https://$GIT_USER:$GIT_PASS@github.com/sonyragam/mini-project.git HEAD:main
+                    '''
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo "Build + SonarQube + Docker push successful"
+            echo "Build + SonarQube + Docker + GitOps successful"
         }
 
         failure {
