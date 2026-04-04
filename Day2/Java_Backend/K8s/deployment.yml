@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: java-backend
+  template:
+    metadata:
+      labels:
+        app: java-backend
+    spec:
+      containers:
+      - name: java-backend
+        image: sonyragam8624/java-backend-app:73-d159b9e   # will be updated by Jenkins
+        ports:
+        - containerPort: 9090
+        imagePullPolicy: Always
