@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: java-backend
-        image: sonyragam/java-backend-app:98-76025fc
+        image: sonyragam/java-backend-app:99-39c6018
         ports:
         - containerPort: 9090
         imagePullPolicy: Always
