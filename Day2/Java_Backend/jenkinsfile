@@ -87,6 +87,10 @@ pipeline {
 
                     sh '''
                     cd /home/sony/.jenkins/workspace/test/Day2/Java_Backend
+                    git reset --hard
+                    git clean -fd
+                    
+                    git pull origin main --rebase
 
                     # Update image tag in K8s deployment
                     sed -i "s|image:.*|image: sonyragam/java-backend-app:$TAG|" K8s/deployment.yml
@@ -98,7 +102,7 @@ pipeline {
                     # Commit and push
                     git add K8s/deployment.yml
                     git commit -m "Update image to $TAG" || echo "No changes to commit"
-                    git pull origin main --rebase
+                    
                     git push https://$GIT_USER:$GIT_PASS@github.com/sonyragam/mini-project.git HEAD:main
                     '''
                 }
