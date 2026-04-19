@@ -1,0 +1,95 @@
+🚀 CI/CD Pipeline using Jenkins, SonarQube, Docker, Kubernetes & ArgoCD
+
+📌 Overview
+
+This project implements an end-to-end CI/CD pipeline for a Java Spring Boot application using:
+
+Jenkins
+SonarQube
+Docker
+Docker Hub
+Kubernetes
+Argo CD
+
+🔁 CI/CD Flow
+
+Developer → GitHub → Jenkins → SonarQube → Build Jar → create Docker image → push to Docker Hub → Git Update manifest files using (sh) → ArgoCD detects changes →  automatically deployes on Kubernetes Cluster → Application run's
+
+⚙️ Pipeline Stages
+1 Code Commit
+Developer pushes code to GitHub repository.
+Jenkins pipeline is triggered.
+
+2 SonarQube Analysis
+Runs code quality scan using Maven.
+Checks:
+Bugs
+Vulnerabilities
+Code Smells
+Quality Gate must pass
+
+3 Build Application
+Maven builds the Spring Boot JAR file
+
+mvn clean package -DskipTests
+
+4 Verify Build
+Confirms JAR file exists in target/ directory.
+
+
+5 Generate Image Tag
+Unique tag created using:
+BUILD_NUMBER + GIT_COMMIT_ID
+
+6 Docker Build
+Builds Docker image with generated tag.
+docker build -t sonyragam/java-backend-app:<TAG> 
+
+7 Docker Push
+Pushes image to Docker Hub.
+docker push sonyragam/java-backend-app:<TAG>
+
+8 pdate Kubernetes Manifest
+Updates image tag in deployment YAML.
+sed -i "s|image:.*|image: sonyragam/java-backend-app:<TAG>|" K8s/deployment.yml
+
+9 Git Push (GitOps Step)
+Commits updated deployment file.
+Pushes changes to GitHub.
+
+10 ArgoCD Sync
+ArgoCD detects Git changes automatically.
+Syncs updated configuration to Kubernetes.
+
+11 Kubernetes Deployment
+New pods are created with updated image.
+Service exposes application via NodePort.
+
+12 Application Access
+http://localhost:30007
+
+📊 Output
+✅ SonarQube Quality Gate: PASSED
+✅ Jenkins Build: SUCCESS
+✅ Docker Image: PUSHED
+✅ ArgoCD: SYNCED & HEALTHY
+✅ Kubernetes: RUNNING
+
+
+🎯 Key Features
+End-to-End CI/CD Automation
+Code Quality Integration
+Dynamic Docker Image Tagging
+GitOps-based Deployment
+Automated Kubernetes Rollout
+
+🧠 Workflow Summary
+Code pushed to GitHub
+Jenkins runs pipeline
+SonarQube validates code
+Maven builds application
+Docker image created & pushed
+Deployment YAML updated
+Changes pushed to GitHub
+ArgoCD deploys to Kubernetes
+Application goes live
