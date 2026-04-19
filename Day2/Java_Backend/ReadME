@@ -14,31 +14,19 @@ Argo CD
 🔁 CI/CD Flow
 
 Developer → GitHub → Jenkins → SonarQube → Build Jar → create Docker image → push to Docker Hub → Git Update manifest files using (sh) → ArgoCD detects changes →  automatically deployes on Kubernetes Cluster → Application run's
+ 
+⚙️ Pipeline Stages 
+1 Code Commit 
+Developer pushes code to GitHub repository. 
+Jenkins pipeline is triggered. 
 
-## ⚙️ Pipeline Stages
-
-### 1️⃣ Code Commit
-- Developer pushes code to GitHub repository  
-- Jenkins pipeline is triggered  
-
----
-
-### 2️⃣ Jenkins Pipeline Execution
-- Executes all CI/CD stages automatically  
-
-<img src="Images/jenkins.png" width="800"/>
-
----
-
-### 3️⃣ SonarQube Analysis
-- Runs code quality scan using Maven  
-- Checks:
-  - Bugs  
-  - Vulnerabilities  
-  - Code Smells  
-- Quality Gate must pass  
-
-<img src="Images/sonarQube.png" width="800"/>
+2 SonarQube Analysis 
+Runs code quality scan using Maven. 
+Checks: 
+  Bugs 
+  Vulnerabilities 
+  Code Smells 
+  Quality Gate must pass
 
 3 Build Application
 Maven builds the Spring Boot JAR file
